@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SSC Mock Test Portal</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22222f;
+      --border: #2e2e40;
+      --accent-cpo: #3b82f6;
+      --accent-steno: #8b5cf6;
+      --accent-cgl: #10b981;
+      --text: #e8e8f0;
+      --text-muted: #8888aa;
+      --radius: 14px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 28px 20px 24px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+    .header h1 {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .header p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: all 0.2s;
+    }
+    .badge-cpo  { color: var(--accent-cpo);   border-color: var(--accent-cpo);   }
+    .badge-steno{ color: var(--accent-steno); border-color: var(--accent-steno); }
+    .badge-cgl  { color: var(--accent-cgl);   border-color: var(--accent-cgl);   }
+    .badge:hover { transform: scale(1.05); }
+
+    /* ── Home: 3 category cards ── */
+    #home-view {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 16px 60px;
+    }
+    #home-view h2 {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+    }
+    .cat-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .cat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .cat-card.cpo::before   { background: var(--accent-cpo); }
+    .cat-card.steno::before { background: var(--accent-steno); }
+    .cat-card.cgl::before   { background: var(--accent-cgl); }
+
+    .cat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+    .cat-card.cpo:hover   { border-color: var(--accent-cpo); }
+    .cat-card.steno:hover { border-color: var(--accent-steno); }
+    .cat-card.cgl:hover   { border-color: var(--accent-cgl); }
+
+    .cat-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+    .cat-card h3 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .cat-card.cpo h3   { color: var(--accent-cpo); }
+    .cat-card.steno h3 { color: var(--accent-steno); }
+    .cat-card.cgl h3   { color: var(--accent-cgl); }
+    .cat-card p {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .cat-count {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .cpo .cat-count   { background: rgba(59,130,246,0.15); color: var(--accent-cpo); }
+    .steno .cat-count { background: rgba(139,92,246,0.15); color: var(--accent-steno); }
+    .cgl .cat-count   { background: rgba(16,185,129,0.15); color: var(--accent-cgl); }
+    .cat-arrow {
+      position: absolute;
+      bottom: 20px; right: 20px;
+      font-size: 1.2rem;
+      color: var(--border);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .cat-card:hover .cat-arrow { color: var(--text-muted); transform: translateX(4px); }
+
+    /* ── Mock list view ── */
+    #mock-view { display: none; max-width: 900px; margin: 0 auto; padding: 28px 16px 60px; }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    .back-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
+    .mock-view-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .mock-view-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+    .mock-view-header .count-pill {
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    /* Search */
+    .search-bar {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 16px;
+      color: var(--text);
+      font-size: 0.92rem;
+      width: 100%;
+      margin-bottom: 20px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-bar:focus { border-color: var(--text-muted); }
+
+    /* Steno year filter */
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-tab.active { color: #fff; }
+
+    /* Mock cards grid */
+    .mock-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .mock-card {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .mock-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    }
+    .mock-card.cpo:hover   { border-color: var(--accent-cpo); }
+    .mock-card.steno:hover { border-color: var(--accent-steno); }
+    .mock-card.cgl:hover   { border-color: var(--accent-cgl); }
+
+    .mock-num {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .mock-card.cpo   .mock-num { color: var(--accent-cpo); }
+    .mock-card.steno .mock-num { color: var(--accent-steno); }
+    .mock-card.cgl   .mock-num { color: var(--accent-cgl); }
+
+    .mock-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .mock-tag {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 10px;
+      width: fit-content;
+      font-weight: 600;
+    }
+    .tag-2024 { background: rgba(139,92,246,0.2); color: #a78bfa; }
+    .tag-2025 { background: rgba(16,185,129,0.2); color: #34d399; }
+
+    .open-icon {
+      position: absolute;
+      top: 12px; right: 12px;
+      font-size: 0.9rem;
+      color: var(--border);
+      transition: color 0.2s;
+    }
+    .mock-card:hover .open-icon { color: var(--text-muted); }
+
+    .no-results {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px;
+      font-size: 0.9rem;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <h1>📚 SSC Mock Test Portal</h1>
+  <p>Premium Mock Tests — CPO · STENO · CGL Mains</p>
+  <div class="badge-row">
+    <span class="badge badge-cpo"  onclick="showCategory('cpo')">SSC CPO</span>
+    <span class="badge badge-steno" onclick="showCategory('steno')">STENO</span>
+    <span class="badge badge-cgl"  onclick="showCategory('cgl')">CGL MAINS</span>
+  </div>
+</header>
+
+<!-- Home -->
+<div id="home-view">
+  <h2>Choose Your Exam</h2>
+  <div class="cat-grid">
+
+    <div class="cat-card cpo" onclick="showCategory('cpo')">
+      <div class="cat-icon">🚔</div>
+      <h3>SSC CPO Mains</h3>
+      <p>Sub-Inspector recruitment mock tests covering all sections of SSC CPO Mains pattern.</p>
+      <span class="cat-count">36 Mock Tests</span>
+      <span class="cat-arrow">→</span>
+    </div>
+
+    <div class="cat-card steno" onclick="showCategory('steno')">
+      <div class="cat-icon">⌨️</div>
+      <h3>SSC Stenographer</h3>
+      <p>Complete mock test series for SSC Steno Grade C & D — 2024 & 2025 pattern.</p>
+      <span class="cat-count">46 Mock Tests</span>
+      <span class="cat-arrow">→</span>
+    </div>
+
+    <div class="cat-card cgl" onclick="showCategory('cgl')">
+      <div class="cat-icon">🏆</div>
+      <h3>SSC CGL Mains</h3>
+      <p>Tier-II full-length mock tests for SSC CGL 2025 — latest exam pattern.</p>
+      <span class="cat-count">78 Mock Tests</span>
+      <span class="cat-arrow">→</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- Mock List -->
+<div id="mock-view">
+  <button class="back-btn" onclick="showHome()">← Back</button>
+  <div class="mock-view-header">
+    <h2 id="mock-view-title"></h2>
+    <span class="count-pill" id="mock-view-count"></span>
+  </div>
+
+  <input class="search-bar" type="text" id="search-input" placeholder="Search mock number..." oninput="filterMocks()"/>
+
+  <div class="filter-tabs" id="filter-tabs" style="display:none">
+    <button class="filter-tab active" onclick="setFilter('all', this)">All</button>
+    <button class="filter-tab" onclick="setFilter('2024', this)">2024</button>
+    <button class="filter-tab" onclick="setFilter('2025', this)">2025</button>
+  </div>
+
+  <div class="mock-grid" id="mock-grid"></div>
+  <p class="no-results" id="no-results" style="display:none">No mocks found 🔍</p>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const CPO_MOCKS = [
+  { num: '01', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_01.html' },
+  { num: '02', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_02.html' },
+  { num: '03', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_03.html' },
+  { num: '04', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_04.html' },
+  { num: '05', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_05.html' },
+  { num: '06', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_Mock_Test_-_06.html' },
+  { num: '07', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_MOCK_TEST_-_O7.html' },
+  { num: '08', file: 'CPO_MAINS/Paid_SSC_CPO_MAINS_MOCK_TEST_-_O8.html' },
+  { num: '09', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_09.html' },
+  { num: '10', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_10.html' },
+  { num: '11', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_11.html' },
+  { num: '12', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_12.html' },
+  { num: '13', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_13.html' },
+  { num: '14', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_14.html' },
+  { num: '15', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_15.html' },
+  { num: '16', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_16.html' },
+  { num: '17', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_17.html' },
+  { num: '18', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_18.html' },
+  { num: '19', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_19.html' },
+  { num: '20', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_20.html' },
+  { num: '21', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_21.html' },
+  { num: '22', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_22.html' },
+  { num: '23', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_23.html' },
+  { num: '24', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_24.html' },
+  { num: '25', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_25.html' },
+  { num: '26', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_26.html' },
+  { num: '27', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_27.html' },
+  { num: '28', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_28.html' },
+  { num: '29', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_29.html' },
+  { num: '30', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_30.html' },
+  { num: '31', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_31.html' },
+  { num: '32', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_32.html' },
+  { num: '33', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_33.html' },
+  { num: '34', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_34.html' },
+  { num: '35', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_35.html' },
+  { num: '36', file: 'CPO_MAINS/Paid_SSC_CPO_Mains_Mock_Test_-_36.html' },
+];
+
+const STENO_MOCKS = [
+  { num: '01', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_01_(2024).html' },
+  { num: '01', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_01_(2025).html' },
+  { num: '02', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_02_(2024).html' },
+  { num: '02', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_02_(2025).html' },
+  { num: '03', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_03_(2024).html' },
+  { num: '03', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_03_(2025).html' },
+  { num: '04', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_04_(2024).html' },
+  { num: '04', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_04_(2025).html' },
+  { num: '05', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_05_(2024).html' },
+  { num: '05', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_05_(2025).html' },
+  { num: '06', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_06_(2024).html' },
+  { num: '06', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_06_(2025).html' },
+  { num: '07', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_07_(2024).html' },
+  { num: '08', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_08_(2024).html' },
+  { num: '09', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_09_(2024).html' },
+  { num: '10', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_10_(2024).html' },
+  { num: '11', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_11_(2024).html' },
+  { num: '12', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_12_(2024).html' },
+  { num: '13', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_13_(2024).html' },
+  { num: '14', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_14_(2024).html' },
+  { num: '15', year: '2025', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_15_(2025).html' },
+  { num: '16', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_16_(2024).html' },
+  { num: '17', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_17_(2024).html' },
+  { num: '18', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_18_(2024).html' },
+  { num: '19', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_19_(2024).html' },
+  { num: '20', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_20_(2024).html' },
+  { num: '21', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_21_(2024).html' },
+  { num: '22', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_22_(2024).html' },
+  { num: '23', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_23_(2024).html' },
+  { num: '24', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_24_(2024).html' },
+  { num: '25', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_25_(2024).html' },
+  { num: '26', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_26_(2024).html' },
+  { num: '27', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_27_(2024).html' },
+  { num: '28', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_28_(2024).html' },
+  { num: '29', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_29_(2024).html' },
+  { num: '30', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_30_(2024).html' },
+  { num: '31', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_31_(2024).html' },
+  { num: '32', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_32_(2024).html' },
+  { num: '33', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_33_(2024).html' },
+  { num: '34', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_34_(2024).html' },
+  { num: '35', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_35_(2024).html' },
+  { num: '36', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_36_(2024).html' },
+  { num: '37', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_37_(2024).html' },
+  { num: '38', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_38_(2024).html' },
+  { num: '39', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_39_(2024).html' },
+  { num: '40', year: '2024', file: 'STENO/Paid_SSC_Stenographer_Mock_Test_-_40_(2024).html' },
+];
+
+const CGL_MOCKS = [
+  { num: '01',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_01_(New).html' },
+  { num: '02',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_02_(New).html' },
+  { num: '03',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_03_(NEW).html' },
+  { num: '07',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_07_(New).html' },
+  { num: '08',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_08_(New).html' },
+  { num: '09',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_09_(NEW).html' },
+  { num: '15',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_15_(NEW).html' },
+  { num: '15B', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_15_(NEW)_(2).html' },
+  { num: '22',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_22_(NEW).html' },
+  { num: '23',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_23_(NEW).html' },
+  { num: '29',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_29_(NEW).html' },
+  { num: '30',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_30_(NEW).html' },
+  { num: '36',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_36_(NEW).html' },
+  { num: '37',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_37_(NEW).html' },
+  { num: '43',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_43_(NEW).html' },
+  { num: '50',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_50_(NEW).html' },
+  { num: '51',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_51_(NEW).html' },
+  { num: '52',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_52_(NEW).html' },
+  { num: '53',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_53_(NEW).html' },
+  { num: '54',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_54_(NEW).html' },
+  { num: '55',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_55_(NEW).html' },
+  { num: '56',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_56_(NEW).html' },
+  { num: '57',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_57_(NEW).html' },
+  { num: '58',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_58_(NEW).html' },
+  { num: '59',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_59_(NEW).html' },
+  { num: '60',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_60_(NEW).html' },
+  { num: '61',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_61_(NEW).html' },
+  { num: '62',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_62_(NEW).html' },
+  { num: '63',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_63_(NEW).html' },
+  { num: '64',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_64_(NEW).html' },
+  { num: '65',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_65_(NEW).html' },
+  { num: '66',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_66_(NEW).html' },
+  { num: '67',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_67_(NEW).html' },
+  { num: '68',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_68_(NEW).html' },
+  { num: '69',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_69_(NEW).html' },
+  { num: '70',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_70_(NEW).html' },
+  { num: '71',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_71_(NEW).html' },
+  { num: '72',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_72_(NEW).html' },
+  { num: '73',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_73_(NEW).html' },
+  { num: '74',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_74_(NEW).html' },
+  { num: '75',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_75_(NEW).html' },
+  { num: '76',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_76_(NEW).html' },
+  { num: '77',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_77_(NEW).html' },
+  { num: '78',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_78_(NEW).html' },
+  { num: '79',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_79_(NEW).html' },
+  { num: '80',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_80_(NEW).html' },
+  { num: '81',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_81_(NEW).html' },
+  { num: '82',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_82_(NEW).html' },
+  { num: '83',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_83_(NEW).html' },
+  { num: '84',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_84_(NEW).html' },
+  { num: '85',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_85_(NEW).html' },
+  { num: '86',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_86_(NEW).html' },
+  { num: '87',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_87_(NEW).html' },
+  { num: '88',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_88_(NEW).html' },
+  { num: '89',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_89_(NEW).html' },
+  { num: '90',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_90_(NEW).html' },
+  { num: '91',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_91_(NEW).html' },
+  { num: '92',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_92_(NEW).html' },
+  { num: '93',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_93_(NEW).html' },
+  { num: '94',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_94_(NEW).html' },
+  { num: '95',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_95_(NEW).html' },
+  { num: '96',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_96_(NEW).html' },
+  { num: '97',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_97_(NEW).html' },
+  { num: '98',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_98_(NEW).html' },
+  { num: '99',  file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_99_(NEW).html' },
+  { num: '100', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_100_(NEW).html' },
+  { num: '101', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_101_(NEW).html' },
+  { num: '102', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_102_(NEW).html' },
+  { num: '103', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_103_(NEW).html' },
+  { num: '104', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_104_(NEW).html' },
+  { num: '105', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_105_(NEW).html' },
+  { num: '106', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_106_(NEW).html' },
+  { num: '107', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_107_(NEW).html' },
+  { num: '108', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_108_(NEW).html' },
+  { num: '109', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_109_(NEW).html' },
+  { num: '110', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_110_(NEW).html' },
+  { num: '111', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_111_(NEW).html' },
+  { num: '112', file: 'CGL_MAINS/Paid_SSC_CGL_MAINS_2025_MOCK_112_(NEW).html' },
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let currentCategory = null;
+let currentFilter = 'all';
+
+const CAT_CONFIG = {
+  cpo:   { title: '🚔 SSC CPO Mains', data: CPO_MOCKS,   color: 'cpo',   pill: 'rgba(59,130,246,0.15)', pillText: '#60a5fa' },
+  steno: { title: '⌨️ SSC Stenographer', data: STENO_MOCKS, color: 'steno', pill: 'rgba(139,92,246,0.15)', pillText: '#a78bfa' },
+  cgl:   { title: '🏆 SSC CGL Mains', data: CGL_MOCKS,   color: 'cgl',   pill: 'rgba(16,185,129,0.15)', pillText: '#34d399' },
+};
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function showHome() {
+  document.getElementById('home-view').style.display = 'block';
+  document.getElementById('mock-view').style.display = 'none';
+  currentCategory = null;
+  window.scrollTo(0, 0);
+}
+
+function showCategory(cat) {
+  currentCategory = cat;
+  currentFilter = 'all';
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('mock-view').style.display = 'block';
+
+  const cfg = CAT_CONFIG[cat];
+  document.getElementById('mock-view-title').textContent = cfg.title;
+  document.getElementById('mock-view-title').style.color = cfg.pillText;
+
+  const countPill = document.getElementById('mock-view-count');
+  countPill.textContent = cfg.data.length + ' Mocks';
+  countPill.style.background = cfg.pill;
+  countPill.style.color = cfg.pillText;
+
+  // Show year filter only for STENO
+  const ft = document.getElementById('filter-tabs');
+  ft.style.display = cat === 'steno' ? 'flex' : 'none';
+  ft.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  ft.querySelector('[onclick="setFilter(\'all\', this)"]').classList.add('active');
+
+  document.getElementById('search-input').value = '';
+  renderMocks(cfg.data);
+  window.scrollTo(0, 0);
+}
+
+function setFilter(year, btn) {
+  currentFilter = year;
+  btn.closest('.filter-tabs').querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterMocks();
+}
+
+function filterMocks() {
+  const q = document.getElementById('search-input').value.toLowerCase().trim();
+  const cfg = CAT_CONFIG[currentCategory];
+  let data = cfg.data;
+
+  if (currentCategory === 'steno' && currentFilter !== 'all') {
+    data = data.filter(m => m.year === currentFilter);
+  }
+  if (q) {
+    data = data.filter(m => m.num.toLowerCase().includes(q) || (m.year && m.year.includes(q)));
+  }
+  renderMocks(data);
+}
+
+function renderMocks(data) {
+  const grid = document.getElementById('mock-grid');
+  const noRes = document.getElementById('no-results');
+  const color = CAT_CONFIG[currentCategory].color;
+
+  if (!data.length) {
+    grid.innerHTML = '';
+    noRes.style.display = 'block';
+    return;
+  }
+  noRes.style.display = 'none';
+
+  grid.innerHTML = data.map(m => {
+    const yearTag = m.year
+      ? `<span class="mock-tag tag-${m.year}">${m.year}</span>`
+      : '';
+    const label = currentCategory === 'cgl' ? 'CGL Mains 2025' :
+                  currentCategory === 'cpo' ? 'CPO Mains' : 'Stenographer';
+    return `<div class="mock-card ${color}" onclick="openMock('${m.file}')">
+      <span class="open-icon">↗</span>
+      <div class="mock-num">Mock ${m.num}</div>
+      <div class="mock-label">${label}</div>
+      ${yearTag}
+    </div>`;
+  }).join('');
+}
+
+function openMock(file) {
+  window.open(file, '_blank');
+}
+
+// Active filter tab color sync
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.filter-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.style.background = 'rgba(139,92,246,0.2)';
+      this.style.color = '#a78bfa';
+      this.style.borderColor = '#8b5cf6';
+    });
+  });
+});
+</script>
+</body>
+</html>
